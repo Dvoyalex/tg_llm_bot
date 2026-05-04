@@ -5,7 +5,7 @@ from telebot import TeleBot
 from telebot.types import Message, CallbackQuery
 
 import handlers
-
+import llm
 
 load_dotenv()
 
@@ -30,17 +30,17 @@ def chat(message: Message):
     users.setdefault(chat_id, {"messages": start_message})
     messages = users.get(chat_id, {}).get("messages")
     messages.append({"role": "user", "content": message.text})
-    response, err = handlers.ask_llm(messages)
+    response, err = llm.ask_llm(messages)
     
     try:
         if not err:
             messages.append(response)
-            reply = handlers.handle_tool_call(response, messages)
+            reply = llm.handle_tool_call(response, messages)
             tg_bot.send_message(chat_id, reply, parse_mode="markdown")
-            messages.append({"role": "assistant", "content": reply})
         else:
             tg_bot.send_message(chat_id, f"{err}")
             messages.append({"role": "assistant", "content": err})
+
     except Exception as e:
         tg_bot.send_message(chat_id, f"{e}")
 
